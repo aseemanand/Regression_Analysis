@@ -1,0 +1,69 @@
+---
+output: html_document
+---
+## Regression Models and EDA for the mtcars dataset
+
+We will explore the relationship between a set of variables and MPG (outcome) to answer whether an automatic or manual transmission better for MPG and also, quantify the MPG difference between automatic and manual transmissions.
+
+## Executive Summary
+
+From our analysis, we can say that
+
+1. Manual transmission is better for MPG than automtic ransmissions.
+2. The cars with manual transmission have MPG 2.93 higher than the cars with automatic transmission.
+
+## Exploratory Data Analysis (EDA)
+
+Plot 1 (see Appendix) clearly shows that the mpg for cars with manual transmissions is better than the car with automatic transmissions.
+
+## Regression Analysis 
+
+We will first convert "am" (transmission types: 0 = automatic, 1 = manual) into a categorical variable for analysis -
+```{r}
+mtcars$am <- factor(mtcars$am)
+levels(mtcars$am) <- c("auto","manual")
+```
+Now, we can perform regression analysis for mpg and transmission -
+```{r}
+fit <- lm(mpg ~ mtcars$am, data=mtcars)
+summary(fit) 
+```
+Through coefficient analysis, we can see that cars with manual transmissions have 7.24 mpg higher value than cars with automatic transmissions. We will now perform correlation analysis between mpg and transmission (am) to quantify their relationship -  
+```{r}
+data(mtcars)
+cor(mtcars$am,mtcars$mpg)
+```
+Correlation value 0.5998 between mpg and transmission types indicates a significant positive correlation. As our first regression model explains only 36% of the variance, we will now perform modeling based on all variables in the dataset using Stepwise model (both forward and backward) selections to determine best fit variables -
+```{r,results='hide' }
+fit_all <- step(lm(mpg ~ ., data=mtcars), direction = "both")
+```
+```{r}
+summary(fit_all)
+```
+This model explains 85% of the variance with predictor variables wt, qsec and am so should be best fit model for regression analysis. Coefficient analysis shows that cars with manual transmission have 2.93 mpg higher than the cars with automatic transmission. 
+
+We also performed residual analysis (see Plot 2 in Appendix) to show that no non-normal data pattern implying reasonable fit for a linear model. Residuals vs. Fitted plot shows randomly scattered points above and below the 0 line confirming the normal distribution. Normal Q-Q plot also shows residual points located mostly near the line confirming the residuals are normally distributed.
+
+Finally, we can perform ANOVA on our fit and fit_all model to confirm the best fit. 
+```{r}
+anova(fit,fit_all)
+```
+fit_all model with low p value confirms the better fit.
+
+# Appendix
+
+## Plot 1 - Comparison between Manual and Automatic Transimission
+
+```{r,echo=FALSE}
+data(mtcars)
+mtcars$am <- factor(mtcars$am)
+levels(mtcars$am) <- c("auto","manual")
+plot(mtcars$am, mtcars$mpg, main="Auto vs. Manual Transmissions", xlab="Transmission", ylab="MPG",col="green")
+```
+
+## Plot 2 - Residual Analysis
+
+```{r,echo=FALSE}
+par(mfrow = c(2, 2))
+plot(fit_all)
+```
